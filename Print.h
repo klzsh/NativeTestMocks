@@ -1,3 +1,6 @@
+#ifndef NATIVE_PRINT_H
+#define NATIVE_PRINT_H
+
 #ifdef __cplusplus
 #include <cstddef>
 #include <cstdint>
@@ -20,6 +23,13 @@ public:
         for (size_t i = 0; i < n; ++i)
             w += write(buf[i]);
         return w;
+    }
+
+    size_t write(const char *str)
+    {
+        if (!str)
+            return 0;
+        return write(reinterpret_cast<const uint8_t *>(str), std::strlen(str));
     }
 
     // Tiny helpers (enough for tests)
@@ -186,3 +196,5 @@ public:
     virtual void flush() {} // no-op by default (Arduino's default too)
 };
 #endif // __cplusplus
+
+#endif // NATIVE_PRINT_H

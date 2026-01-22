@@ -46,6 +46,22 @@ typedef uint8_t BitOrder;
 // F() macro for flash strings (just return the string on native)
 #define F(string_literal) (string_literal)
 
+// PROGMEM macros - on native, just store in regular memory
+#define PROGMEM
+#define PGM_P const char *
+#define PSTR(s) (s)
+#define pgm_read_byte(addr) (*(const uint8_t *)(addr))
+#define pgm_read_word(addr) (*(const uint16_t *)(addr))
+#define pgm_read_dword(addr) (*(const uint32_t *)(addr))
+#define pgm_read_float(addr) (*(const float *)(addr))
+#define pgm_read_ptr(addr) (*(const void **)(addr))
+#define memcpy_P(dest, src, num) memcpy((dest), (src), (num))
+#define strcpy_P(dest, src) strcpy((dest), (src))
+#define strcmp_P(a, b) strcmp((a), (b))
+#define strlen_P(s) strlen((s))
+#define strncpy_P(dest, src, num) strncpy((dest), (src), (num))
+#define strncmp_P(a, b, n) strncmp((a), (b), (n))
+
 #ifdef __cplusplus
 // Flash string helper type
 class __FlashStringHelper;
@@ -66,6 +82,16 @@ T constrain(T x, T low, T high) {
 template<typename T, typename U, typename V>
 T map(T x, U in_min, U in_max, V out_min, V out_max) {
     return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
+
+template<typename T>
+T min(T a, T b) {
+    return (a < b) ? a : b;
+}
+
+template<typename T>
+T max(T a, T b) {
+    return (a > b) ? a : b;
 }
 #endif // __cplusplus
 
@@ -97,8 +123,9 @@ public:
     void begin(int baud = 9600);
     void end();
     void clearBuffer();
-    bool available();
-    int read() { return -1; }  // Mock read - returns -1 (no data)
+    virtual int available() { return 0; }  // Mock - no data available
+    virtual int peek() { return -1; }  // Mock - no data to peek
+    virtual int read() { return -1; }  // Mock read - returns -1 (no data)
     int readBytesUntil(char i, char *buf, size_t s);
     size_t readBytes(char *buf, size_t len) { return 0; }  // Mock - no data
     size_t readBytes(uint8_t *buf, size_t len) { return 0; }  // Mock - no data
@@ -149,6 +176,10 @@ public:
     }
     String substring(int start, int end) const {
         return String(str.substr(start, end - start));
+    }
+    void trim(){
+        str.erase(0, str.find_first_not_of(' '));
+    
     }
     operator const char*() const { return str.c_str(); }
 };

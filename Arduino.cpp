@@ -98,8 +98,6 @@ void Stream::clearBuffer()
 
 int Stream::readBytesUntil(char c, char *i, size_t len) { return 0; }
 
-bool Stream::available() { return true; }
-
 size_t Stream::write(uint8_t b)
 {
     fakeBuffer[cursor++] = b;
