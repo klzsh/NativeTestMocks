@@ -117,6 +117,10 @@ void pinMode(int pin, int mode);
 int analogRead(int pin);
 
 #ifdef __cplusplus
+
+// Forward declaration for SITL support
+class SITLSocket;
+
 class Stream : public Print
 {
 public:
@@ -142,12 +146,21 @@ public:
     // For simulating incoming data in tests
     void simulateInput(const char *data);
 
+    // SITL (Software-In-The-Loop) mode - connect to external simulator
+    bool connectSITL(const char* host, int port);
+    void disconnectSITL();
+    bool isSITLConnected() const;
+
     char fakeBuffer[1000];
     int cursor = 0;
     // Input buffer for read operations
     char inputBuffer[1000];
     int inputCursor = 0;
     int inputLength = 0;
+
+private:
+    SITLSocket* sitlSocket = nullptr;  // TCP connection to external simulator
+    void pollSITLInput();  // Poll for incoming data from simulator
 };
 
 // Arduino String class

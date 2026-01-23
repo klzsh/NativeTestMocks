@@ -1,4 +1,5 @@
 #include "Arduino.h"
+#include "SITLSocket.h"
 
 const uint64_t start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 const uint64_t startMicros = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
@@ -93,7 +94,10 @@ int analogRead(int pin)
 }
 
 void Stream::begin(int baud) {}
-void Stream::end() {}
+void Stream::end()
+{
+    disconnectSITL();
+}
 
 void Stream::clearBuffer()
 {
@@ -103,19 +107,51 @@ void Stream::clearBuffer()
     inputLength = 0;
     inputBuffer[0] = '\0';
 }
+
+void Stream::pollSITLInput()
+{
+    if (!sitlSocket || !sitlSocket->isConnected()) {
+        return;
+    }
+
+    // Check if there's room in the input buffer
+    int roomAvailable = sizeof(inputBuffer) - inputLength;
+    if (roomAvailable <= 0) {
+        return; // Buffer full
+    }
+
+    // Read available data from SITL socket
+    uint8_t tempBuffer[256];
+    int bytesRead = sitlSocket->read(tempBuffer, sizeof(tempBuffer) < roomAvailable ? sizeof(tempBuffer) : roomAvailable);
+
+    if (bytesRead > 0) {
+        // Append to input buffer
+        memcpy(inputBuffer + inputLength, tempBuffer, bytesRead);
+        inputLength += bytesRead;
+        inputBuffer[inputLength] = '\0';
+    }
+}
+
 bool Stream::available()
 {
+    // Poll for new SITL data if connected
+    pollSITLInput();
+
     return inputCursor < inputLength;
 }
 
 int Stream::read()
 {
+    // Poll for new SITL data if connected
+    pollSITLInput();
+
     if (inputCursor >= inputLength)
     {
         return -1;
     }
     return inputBuffer[inputCursor++];
 }
+
 void Stream::simulateInput(const char *data)
 {
     if (!data)
@@ -136,8 +172,45 @@ int Stream::readBytesUntil(char c, char *i, size_t len) { return 0; }
 
 size_t Stream::write(uint8_t b)
 {
-    fakeBuffer[cursor++] = b;
+    // Write to fake buffer for debugging/logging
+    if (cursor < sizeof(fakeBuffer) - 1) {
+        fakeBuffer[cursor++] = b;
+        fakeBuffer[cursor] = '\0';
+    }
+
+    // If SITL is connected, send to external simulator
+    if (sitlSocket && sitlSocket->isConnected()) {
+        sitlSocket->write(&b, 1);
+    }
+
     return 1;
+}
+
+bool Stream::connectSITL(const char* host, int port)
+{
+    if (!sitlSocket) {
+        sitlSocket = new SITLSocket();
+    }
+
+    if (sitlSocket->isConnected()) {
+        sitlSocket->disconnect();
+    }
+
+    return sitlSocket->connect(host, port);
+}
+
+void Stream::disconnectSITL()
+{
+    if (sitlSocket) {
+        sitlSocket->disconnect();
+        delete sitlSocket;
+        sitlSocket = nullptr;
+    }
+}
+
+bool Stream::isSITLConnected() const
+{
+    return sitlSocket && sitlSocket->isConnected();
 }
 
 SerialClass Serial;
