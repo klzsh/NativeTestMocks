@@ -1,5 +1,6 @@
 #include "Arduino.h"
 #include "SITLSocket.h"
+#include <iostream>
 
 const uint64_t start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 const uint64_t startMicros = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
@@ -177,6 +178,8 @@ size_t Stream::write(uint8_t b)
         fakeBuffer[cursor++] = b;
         fakeBuffer[cursor] = '\0';
     }
+    std::cout << b;
+
 
     // If SITL is connected, send to external simulator
     if (sitlSocket && sitlSocket->isConnected()) {
