@@ -5,6 +5,7 @@
 #include <Sensors/GPS/GPS.h>
 #include <Sensors/Accel/Accel.h>
 #include <Sensors/Gyro/Gyro.h>
+#include <Sensors/Mag/Mag.h>
 #include <Sensors/IMU/IMU6DoF.h>
 #include <Math/Vector.h>
 #include <Math/Quaternion.h>
@@ -16,10 +17,14 @@ class FakeBarometer : public Barometer
 public:
     FakeBarometer() : Barometer(), fakeAlt(0), fakeAltSet(false)
     {
-        initialized = true;
         setName("FakeBarometer");
     }
     ~FakeBarometer() {}
+
+    void reset()
+    {
+        initialized = false;
+    }
 
     bool read() override
     {
@@ -64,7 +69,8 @@ public:
 
     bool init() override
     {
-        return initialized;
+        initialized = true;
+        return true;
     }
 
     double fakeP = 101325.0;  // Default to sea level
@@ -78,10 +84,14 @@ class FakeGPS : public GPS
 public:
     FakeGPS() : GPS()
     {
-        initialized = true;
         setName("FakeGPS");
     }
     ~FakeGPS() {}
+
+    void reset()
+    {
+        initialized = false;
+    }
 
     bool read() override {
         return true;
@@ -109,7 +119,8 @@ public:
 
     bool init() override
     {
-        return initialized;
+        initialized = true;
+        return true;
     }
 
     void setHasFirstFix(bool fix)
@@ -131,7 +142,6 @@ class FakeAccel : public Accel
 public:
     FakeAccel() : Accel("FakeAccel")
     {
-        initialized = true;
     }
     ~FakeAccel() {}
 
@@ -148,7 +158,13 @@ public:
     bool init() override
     {
         acc = Vector<3>{0, 0, -9.81};
-        return initialized;
+        initialized = true;
+        return true;
+    }
+
+    void reset()
+    {
+        initialized = false;
     }
 };
 
@@ -157,7 +173,6 @@ class FakeGyro : public Gyro
 public:
     FakeGyro() : Gyro("FakeGyro")
     {
-        initialized = true;
     }
     ~FakeGyro() {}
 
@@ -174,12 +189,44 @@ public:
     bool init() override
     {
         angVel = Vector<3>{0, 0, 0};
+        initialized = true;
         return true;
     }
 
-    bool isInitialized() const override
+    void reset()
+    {
+        initialized = false;
+    }
+};
+
+class FakeMag : public Mag
+{
+public:
+    FakeMag() : Mag("FakeMag")
+    {
+    }
+    ~FakeMag() {}
+
+    bool read() override
     {
         return true;
+    }
+
+    void set(Vector<3> magField)
+    {
+        mag = magField;
+    }
+
+    bool init() override
+    {
+        mag = Vector<3>{0, 0, 0};
+        initialized = true;
+        return true;
+    }
+
+    void reset()
+    {
+        initialized = false;
     }
 };
 
@@ -188,7 +235,6 @@ class FakeIMU : public IMU6DoF
 public:
     FakeIMU() : IMU6DoF("FakeIMU")
     {
-        initialized = true;
     }
     ~FakeIMU() {}
 
@@ -212,9 +258,9 @@ public:
         // Note: IMU6DoF doesn't have magnetometer, so mag is ignored
     }
 
-    bool isInitialized() const override
+    void reset()
     {
-        return initialized;
+        initialized = false;
     }
 };
 
