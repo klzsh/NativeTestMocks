@@ -174,6 +174,7 @@ void SITLSocket::disconnect()
         CLOSE_SOCKET(socketFd);
         socketFd = INVALID_SOCKET_VALUE;
     }
+    std::exit(0);
     connected = false;
 }
 
