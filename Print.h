@@ -112,7 +112,7 @@ public:
 
     // Only define size_t overload if it's different from unsigned long
     // On 64-bit Linux, size_t == unsigned long, causing duplicate overload
-#if !defined(__linux__) || !defined(__x86_64__)
+#if !((defined(__linux__) || defined(__APPLE__)) && defined(__LP64__))
     size_t println(size_t i)
     {
         char buf[32];
