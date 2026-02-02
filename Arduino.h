@@ -24,6 +24,8 @@
 
 #define INPUT 1
 #define OUTPUT 0
+#define INPUT_PULLUP 2
+#define INPUT_PULLDOWN 3
 
 #define LED_BUILTIN 13
 #define BUILTIN_SDCARD 254
