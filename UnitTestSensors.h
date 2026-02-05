@@ -26,24 +26,24 @@ public:
         initialized = false;
     }
 
-    bool read() override
+    int read() override
     {
         pressure = fakeP;
         temp = fakeT;
-        return true;
+        return 0;
     }
 
-    // Override update() to prevent recalculation when altitude is set directly
-    bool update() override
+    // Override update(double time = -1) to prevent recalculation when altitude is set directly
+    int update(double time = -1) override
     {
         if (!read())
-            return false;
+            return -1;
         // Only calculate altitude from pressure if it wasn't set directly
         if (!fakeAltSet) {
             altitudeASL = calcAltitude(pressure);
         }
         // If altitude was set directly, altitudeASL is already correct
-        return true;
+        return 0;
     }
 
     // Helper to set altitude directly
@@ -67,16 +67,16 @@ public:
         fakeAltSet = false;
     }
 
-    bool init() override
+    int init() override
     {
         initialized = true;
-        return true;
+        return 0;
     }
 
     double fakeP = 101325.0;  // Default to sea level
     double fakeT = 20.0;      // Default to 20C
     double fakeAlt = 0.0;
-    bool fakeAltSet = false;
+    int fakeAltSet = false;
 };
 
 class FakeGPS : public GPS
@@ -93,8 +93,8 @@ public:
         initialized = false;
     }
 
-    bool read() override {
-        return true;
+    int read() override {
+        return 0;
     }
     void set(double lat, double lon, double alt)
     {
@@ -117,13 +117,13 @@ public:
         snprintf(tod, 12, "%02d:%02d:%02d", hr, min, sec); // size is really 9 but 12 ignores warnings about truncation. IRL it will never truncate
     }
 
-    bool init() override
+    int init() override
     {
         initialized = true;
-        return true;
+        return 0;
     }
 
-    void setHasFirstFix(bool fix)
+    void setHasFirstFix(int fix)
     {
         hasFix = fix;
         if (fix)
@@ -145,9 +145,9 @@ public:
     }
     ~FakeAccel() {}
 
-    bool read() override
+    int read() override
     {
-        return true;
+        return 0;
     }
 
     void set(Vector<3> accel)
@@ -155,11 +155,11 @@ public:
         acc = accel;
     }
 
-    bool init() override
+    int init() override
     {
         acc = Vector<3>{0, 0, -9.81};
         initialized = true;
-        return true;
+        return 0;
     }
 
     void reset()
@@ -176,9 +176,9 @@ public:
     }
     ~FakeGyro() {}
 
-    bool read() override
+    int read() override
     {
-        return true;
+        return 0;
     }
 
     void set(Vector<3> gyro)
@@ -186,11 +186,11 @@ public:
         angVel = gyro;
     }
 
-    bool init() override
+    int init() override
     {
         angVel = Vector<3>{0, 0, 0};
         initialized = true;
-        return true;
+        return 0;
     }
 
     void reset()
@@ -207,9 +207,9 @@ public:
     }
     ~FakeMag() {}
 
-    bool read() override
+    int read() override
     {
-        return true;
+        return 0;
     }
 
     void set(Vector<3> magField)
@@ -217,11 +217,11 @@ public:
         mag = magField;
     }
 
-    bool init() override
+    int init() override
     {
         mag = Vector<3>{0, 0, 0};
         initialized = true;
-        return true;
+        return 0;
     }
 
     void reset()
@@ -238,17 +238,17 @@ public:
     }
     ~FakeIMU() {}
 
-    bool init() override
+    int init() override
     {
         acc = Vector<3>{0, 0, -9.81};
         angVel = Vector<3>{0, 0, 0};
         initialized = true;
-        return true;
+        return 0;
     }
 
-    bool read() override
+    int read() override
     {
-        return true;
+        return 0;
     }
 
     void set(Vector<3> accel, Vector<3> gyro, Vector<3> mag = Vector<3>{0, 0, 0})
