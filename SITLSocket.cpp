@@ -1,6 +1,7 @@
 #include "SITLSocket.h"
 #include <cstring>
 #include <cstdio>
+#include <cstdlib>
 #include <thread>
 
 // Platform-specific includes
